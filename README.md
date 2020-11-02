@@ -1,6 +1,8 @@
 [TensorFlow] Generative Adversarial Nets (GAN)
 =====
 
+TensorFlow implementation of Generative Adversarial Networks (GAN) with MNIST dataset.  
+
 ## Architecture
 <div align="center">
   <img src="./figures/algorithm.png" width="500">  
