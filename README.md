@@ -28,8 +28,8 @@ TensorFlow implementation of Generative Adversarial Networks (GAN) with MNIST da
 ### Training Procedure
 <div align="center">
   <p>
-    <img src="./figures/GAN_loss_d.svg" width="300">
-    <img src="./figures/GAN_loss_g.svg" width="300">
+    <img src="./figures/GAN_loss_d.svg" width="400">
+    <img src="./figures/GAN_loss_g.svg" width="400">
   </p>
   <p>Loss graph in the training procedure. </br> Each graph shows loss of the discriminator and loss of the generator respectively.</p>
 </div>
