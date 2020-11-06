@@ -35,9 +35,13 @@ TensorFlow implementation of Generative Adversarial Networks (GAN) with MNIST da
 </div>
 
 ### Test Procedure
-|z:2|z:2 (latent space walking)|z:64|
-|:---:|:---:|:---:|
-|<img src="./figures/z02.png" width="300">|<img src="./figures/z02_lw.png" width="300">|<img src="./figures/z64.png" width="300">|
+|z:2|z:2 (latent space walking)|
+|:---:|:---:|
+|<img src="./figures/z02.png" width="400">|<img src="./figures/z02_lw.png" width="400">|
+
+|z:64|z:128|
+|:---:|:---:|
+|<img src="./figures/z64.png" width="400">|<img src="./figures/z128.png" width="400">|
 
 ## Environment
 * Python 3.7.4  
