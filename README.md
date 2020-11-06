@@ -28,8 +28,8 @@ TensorFlow implementation of Generative Adversarial Networks (GAN) with MNIST da
 ### Training Procedure
 <div align="center">
   <p>
-    <img src="./figures/GAN_loss_d.svg" width="400">
-    <img src="./figures/GAN_loss_g.svg" width="400">
+    <img src="./figures/GAN_loss_d.svg" width="300">
+    <img src="./figures/GAN_loss_g.svg" width="300">
   </p>
   <p>Loss graph in the training procedure. </br> Each graph shows loss of the discriminator and loss of the generator respectively.</p>
 </div>
@@ -37,11 +37,11 @@ TensorFlow implementation of Generative Adversarial Networks (GAN) with MNIST da
 ### Test Procedure
 |z:2|z:2 (latent space walking)|
 |:---:|:---:|
-|<img src="./figures/z02.png" width="400">|<img src="./figures/z02_lw.png" width="400">|
+|<img src="./figures/z02.png" width="300">|<img src="./figures/z02_lw.png" width="300">|
 
 |z:64|z:128|
 |:---:|:---:|
-|<img src="./figures/z64.png" width="400">|<img src="./figures/z128.png" width="400">|
+|<img src="./figures/z64.png" width="300">|<img src="./figures/z128.png" width="300">|
 
 ## Environment
 * Python 3.7.4  
