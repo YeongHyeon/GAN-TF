@@ -117,6 +117,10 @@ class Layers(object):
         filter_size=[3, 3, 16, 32], dilations=[1, 1, 1, 1], \
         padding='SAME', batch_norm=False, training=None, activation=None, name='', verbose=True):
 
+        for idx_os, _ in enumerate(output_shape):
+            if(idx_os == 0): continue
+            output_shape[idx_os] = int(output_shape[idx_os])
+
         w = self.__get_variable(shape=filter_size, \
             trainable=True, name='%s_w' %(name))
         b = self.__get_variable(shape=[filter_size[-2]], \

@@ -173,36 +173,29 @@ class GAN(object):
             self.__encoder(x=self.variables['g_fake'], ksize=ksize, reuse=True, \
             name='dis', verbose=False)
 
-    def __encoder(self, x, ksize=3, reuse=False, name='enc', activation='relu', verbose=True):
+    def __encoder(self, x, ksize=3, reuse=False, \
+        name='enc', activation='relu', depth=3, verbose=True):
 
         with tf.variable_scope(name, reuse=reuse):
 
-            conv1_1 = self.layer.conv2d(x=x, stride=1, padding='SAME', \
-                filter_size=[ksize, ksize, 1, 16], batch_norm=True, training=self.training, \
-                activation=activation, name="%s_conv1_1" %(name), verbose=verbose)
-            conv1_2 = self.layer.conv2d(x=conv1_1, stride=1, padding='SAME', \
-                filter_size=[ksize, ksize, 16, 16], batch_norm=True, training=self.training, \
-                activation=activation, name="%s_conv1_2" %(name), verbose=verbose)
-            maxp1 = self.layer.maxpool(x=conv1_2, ksize=2, strides=2, padding='SAME', \
-                name="%s_pool1" %(name), verbose=verbose)
+            c_in, c_out = self.channel, 16
+            for idx_d in range(depth):
+                conv1 = self.layer.conv2d(x=x, stride=1, padding='SAME', \
+                    filter_size=[ksize, ksize, c_in, c_out], batch_norm=True, training=self.training, \
+                    activation=activation, name="%s_conv%d_1" %(name, idx_d), verbose=verbose)
+                conv2 = self.layer.conv2d(x=conv1, stride=1, padding='SAME', \
+                    filter_size=[ksize, ksize, c_out, c_out], batch_norm=True, training=self.training, \
+                    activation=activation, name="%s_conv%d_2" %(name, idx_d), verbose=verbose)
+                maxp = self.layer.maxpool(x=conv2, ksize=2, strides=2, padding='SAME', \
+                    name="%s_pool%d" %(name, idx_d), verbose=verbose)
 
-            conv2_1 = self.layer.conv2d(x=maxp1, stride=1, padding='SAME', \
-                filter_size=[ksize, ksize, 16, 32], batch_norm=True, training=self.training, \
-                activation=activation, name="%s_conv2_1" %(name), verbose=verbose)
-            conv2_2 = self.layer.conv2d(x=conv2_1, stride=1, padding='SAME', \
-                filter_size=[ksize, ksize, 32, 32], batch_norm=True, training=self.training, \
-                activation=activation, name="%s_conv2_2" %(name), verbose=verbose)
-            maxp2 = self.layer.maxpool(x=conv2_2, ksize=2, strides=2, padding='SAME', \
-                name="%s_pool2" %(name), verbose=verbose)
+                if(idx_d < (depth-1)): x = maxp
+                else: x = conv2
 
-            conv3_1 = self.layer.conv2d(x=maxp2, stride=1, padding='SAME', \
-                filter_size=[ksize, ksize, 32, 64], batch_norm=True, training=self.training, \
-                activation=activation, name="%s_conv3_1" %(name), verbose=verbose)
-            conv3_2 = self.layer.conv2d(x=conv3_1, stride=1, padding='SAME', \
-                filter_size=[ksize, ksize, 64, 64], batch_norm=True, training=self.training, \
-                activation=activation, name="%s_conv3_2" %(name), verbose=verbose)
+                c_in = c_out
+                c_out *= 2
 
-            rs = tf.compat.v1.reshape(conv3_2, shape=[self.batch_size, int(7*7*64)], \
+            rs = tf.compat.v1.reshape(x, shape=[self.batch_size, int(7*7*64)], \
                 name="%s_rs" %(name))
             e = self.layer.fully_connected(x=rs, c_out=1, \
                 batch_norm=False, training=self.training, \
@@ -210,9 +203,13 @@ class GAN(object):
 
             return e
 
-    def __decoder(self, z, ksize=3, reuse=False, name='dec', activation='relu', verbose=True):
+    def __decoder(self, z, ksize=3, reuse=False, \
+        name='dec', activation='relu', depth=3, verbose=True):
 
         with tf.variable_scope(name, reuse=reuse):
+
+            c_in, c_out = 64, 64
+            h_out, w_out = 14, 14
 
             fc1 = self.layer.fully_connected(x=z, c_out=7*7*64, \
                 batch_norm=True, training=self.training, \
@@ -220,30 +217,33 @@ class GAN(object):
             rs = tf.compat.v1.reshape(fc1, shape=[self.batch_size, 7, 7, 64], \
                 name="%s_rs" %(name))
 
-            convt1_1 = self.layer.conv2d(x=rs, stride=1, padding='SAME', \
-                filter_size=[ksize, ksize, 64, 64], batch_norm=True, training=self.training, \
-                activation=activation, name="%s_conv1_1" %(name), verbose=verbose)
-            convt1_2 = self.layer.conv2d(x=convt1_1, stride=1, padding='SAME', \
-                filter_size=[ksize, ksize, 64, 64], batch_norm=True, training=self.training, \
-                activation=activation, name="%s_conv1_2" %(name), verbose=verbose)
+            x = rs
+            for idx_d in range(depth):
+                if(idx_d == 0):
+                    convt1 = self.layer.conv2d(x=x, stride=1, padding='SAME', \
+                        filter_size=[ksize, ksize, c_in, c_out], batch_norm=True, training=self.training, \
+                        activation=activation, name="%s_conv%d_1" %(name, idx_d), verbose=verbose)
+                else:
+                    convt1 = self.layer.convt2d(x=x, stride=2, padding='SAME', \
+                        output_shape=[self.batch_size, h_out, w_out, c_out], filter_size=[ksize, ksize, c_out, c_in], \
+                        dilations=[1, 1, 1, 1], batch_norm=True, training=self.training, \
+                        activation=activation, name="%s_conv%d_1" %(name, idx_d), verbose=verbose)
+                    h_out *= 2
+                    w_out *= 2
 
-            convt2_1 = self.layer.convt2d(x=convt1_2, stride=2, padding='SAME', \
-                output_shape=[self.batch_size, 14, 14, 32], filter_size=[ksize, ksize, 32, 64], \
-                dilations=[1, 1, 1, 1], batch_norm=True, training=self.training, \
-                activation=activation, name="%s_conv2_1" %(name), verbose=verbose)
-            convt2_2 = self.layer.conv2d(x=convt2_1, stride=1, padding='SAME', \
-                filter_size=[ksize, ksize, 32, 32], batch_norm=True, training=self.training, \
-                activation=activation, name="%s_conv2_2" %(name), verbose=verbose)
+                convt2 = self.layer.conv2d(x=convt1, stride=1, padding='SAME', \
+                    filter_size=[ksize, ksize, c_out, c_out], batch_norm=True, training=self.training, \
+                    activation=activation, name="%s_conv%d_2" %(name, idx_d), verbose=verbose)
+                x = convt2
 
-            convt3_1 = self.layer.convt2d(x=convt2_2, stride=2, padding='SAME', \
-                output_shape=[self.batch_size, 28, 28, 16], filter_size=[ksize, ksize, 16, 32], \
-                dilations=[1, 1, 1, 1], batch_norm=True, training=self.training, \
-                activation=activation, name="%s_conv3_1" %(name), verbose=verbose)
-            convt3_2 = self.layer.conv2d(x=convt3_1, stride=1, padding='SAME', \
-                filter_size=[ksize, ksize, 16, 16], batch_norm=True, training=self.training, \
-                activation=activation, name="%s_conv3_2" %(name), verbose=verbose)
-            d = self.layer.conv2d(x=convt3_2, stride=1, padding='SAME', \
-                filter_size=[ksize, ksize, 16, self.channel], batch_norm=False, training=self.training, \
-                activation='sigmoid', name="%s_conv3_3" %(name), verbose=verbose)
+                if(idx_d == 0):
+                    c_out /= 2
+                else:
+                    c_in /= 2
+                    c_out /= 2
+
+            d = self.layer.conv2d(x=x, stride=1, padding='SAME', \
+                filter_size=[ksize, ksize, c_in, self.channel], batch_norm=False, training=self.training, \
+                activation='sigmoid', name="%s_conv%d_3" %(name, idx_d), verbose=verbose)
 
             return d
